@@ -45,6 +45,7 @@ import anywheresoftware.b4a.keywords.Bit;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.collections.List;
 import anywheresoftware.b4a.objects.collections.Map;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 
@@ -57,6 +58,9 @@ import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 
 @ShortName("jFileSupport")
 @BA.Version(1.41f)
@@ -88,7 +92,18 @@ public class jFileSupport {
 
         return List;
     }
-
+    
+    public String ObjectClassToJSON(List listObject) throws JsonProcessingException {
+        java.util.List lstOBJ = listObject.getObject();
+        
+        ObjectMapper objectMapper = new ObjectMapper();        
+        String productListJson = objectMapper.writeValueAsString(lstOBJ);
+                     
+        return productListJson;
+    }    
+    
+    
+    
     public static String getDirAssets() {
         return assetsDir;
     }
@@ -279,7 +294,17 @@ public class jFileSupport {
         return System.getProperty("user.dir");
     }
     private static int os;
-
+    
+    
+    public String MAPtoJSON(Map map) {        
+        java.util.Map data = map.getObject();    
+        JSONObject jsonObject = new JSONObject(data);
+        String orgJsonData = jsonObject.toString();
+        
+        return orgJsonData;
+    }
+    
+    
     /**
      * Returns the path to a folder that is suitable for writing files. On
      * Windows, folders under Program Files are read-only. Therefore File.DirApp
