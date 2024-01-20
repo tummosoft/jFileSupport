@@ -60,37 +60,118 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import info.monitorenter.cpdetector.io.ASCIIDetector;
+import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
+import info.monitorenter.cpdetector.io.JChardetFacade;
+import info.monitorenter.cpdetector.io.ParsingDetector;
+import info.monitorenter.cpdetector.io.UnicodeDetector;
+import java.math.BigInteger;
+
 import java.util.ArrayList;
 
 @ShortName("jFileSupport")
-@BA.Version(1.41f)
-public class jFileSupport {
-
+@BA.Version(1.51f)
+public class jFileSupport {    
     static {
         System.setProperty("file.encoding", "UTF-8");
-        System.setProperty("sun.jnu.encoding", "UTF-8");
+        System.setProperty("sun.jnu.encoding", "UTF-8");       
     }
-
+    // Tested
+    private static final char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7',
+			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    public final static java.util.Map<String, String> FILE_TYPE_MAP = new HashMap<String, String>();     
+    
     private static final String assetsDir = "AssetsDir";
 
+     private static void getAllFileType()     
+    {     
+        FILE_TYPE_MAP.put("ffd8ffe000104a464946", "jpg");
+        FILE_TYPE_MAP.put("89504e470d0a1a0a0000", "png");
+        FILE_TYPE_MAP.put("47494638396126026f01", "gif");
+        FILE_TYPE_MAP.put("49492a00227105008037", "tif");
+        FILE_TYPE_MAP.put("424d228c010000000000", "bmp");
+        FILE_TYPE_MAP.put("424d8240090000000000", "bmp");
+        FILE_TYPE_MAP.put("424d8e1b030000000000", "bmp");
+        FILE_TYPE_MAP.put("41433130313500000000", "dwg");
+        FILE_TYPE_MAP.put("3c21444f435459504520", "html");
+        FILE_TYPE_MAP.put("3c21646f637479706520", "htm");
+        FILE_TYPE_MAP.put("48544d4c207b0d0a0942", "css");
+        FILE_TYPE_MAP.put("696b2e71623d696b2e71", "js");
+        FILE_TYPE_MAP.put("7b5c727466315c616e73", "rtf");
+        FILE_TYPE_MAP.put("38425053000100000000", "psd");
+        FILE_TYPE_MAP.put("46726f6d3a203d3f6762", "eml");
+        FILE_TYPE_MAP.put("d0cf11e0a1b11ae10000", "doc");
+        FILE_TYPE_MAP.put("504b0304140006000800", "doc");
+        FILE_TYPE_MAP.put("d0cf11e0a1b11ae10000", "vsd");
+        FILE_TYPE_MAP.put("5374616E64617264204A", "mdb");
+        FILE_TYPE_MAP.put("252150532D41646F6265", "ps");     
+        FILE_TYPE_MAP.put("255044462d312e350d0a", "pdf");
+        FILE_TYPE_MAP.put("255044462d312e340a25", "pdf"); 
+        FILE_TYPE_MAP.put("2e524d46000000120001", "rmvb");
+        FILE_TYPE_MAP.put("464c5601050000000900", "flv");
+        FILE_TYPE_MAP.put("00000020667479706d70", "mp4"); 
+        FILE_TYPE_MAP.put("49443303000000002176", "mp3"); 
+        FILE_TYPE_MAP.put("000001ba210001000180", "mpg");
+        FILE_TYPE_MAP.put("3026b2758e66cf11a6d9", "wmv");
+        FILE_TYPE_MAP.put("52494646e27807005741", "wav");
+        FILE_TYPE_MAP.put("52494646d07d60074156", "avi");  
+        FILE_TYPE_MAP.put("4d546864000000060001", "mid");
+        FILE_TYPE_MAP.put("504b0304140000000800", "zip");    
+        FILE_TYPE_MAP.put("526172211a0700cf9073", "rar");   
+        FILE_TYPE_MAP.put("235468697320636f6e66", "ini");   
+        FILE_TYPE_MAP.put("504b03040a0000000000", "jar"); 
+        FILE_TYPE_MAP.put("4d5a9000030000000400", "exe");
+        FILE_TYPE_MAP.put("3c25402070616765206c", "jsp");
+        FILE_TYPE_MAP.put("4d616e69666573742d56", "mf");
+        FILE_TYPE_MAP.put("3c3f786d6c2076657273", "xml");
+        FILE_TYPE_MAP.put("494e5345525420494e54", "sql");
+        FILE_TYPE_MAP.put("7061636b616765207765", "java");
+        FILE_TYPE_MAP.put("406563686f206f66660d", "bat");
+        FILE_TYPE_MAP.put("1f8b0800000000000000", "gz");
+        FILE_TYPE_MAP.put("6c6f67346a2e726f6f74", "properties");
+        FILE_TYPE_MAP.put("cafebabe0000002e0041", "class");
+        FILE_TYPE_MAP.put("49545346030000006000", "chm");
+        FILE_TYPE_MAP.put("04000000010000001300", "mxp");
+        FILE_TYPE_MAP.put("504b0304140006000800", "docx");
+        FILE_TYPE_MAP.put("d0cf11e0a1b11ae10000", "wps");
+        FILE_TYPE_MAP.put("6431303a637265617465", "torrent");
+        FILE_TYPE_MAP.put("6D6F6F76", "mov");
+        FILE_TYPE_MAP.put("FF575043", "wpd");
+        FILE_TYPE_MAP.put("CFAD12FEC5FD746F", "dbx");
+        FILE_TYPE_MAP.put("2142444E", "pst"); //Outlook (pst)      
+        FILE_TYPE_MAP.put("AC9EBD8F", "qdf"); //Quicken (qdf)     
+        FILE_TYPE_MAP.put("E3828596", "pwl"); //Windows Password (pwl)         
+        FILE_TYPE_MAP.put("2E7261FD", "ram"); //Real Audio (ram)     
+    }   
+    
     public void RennameFile(final String pathname, final String pathname2) {
         new File(pathname).renameTo(new File(pathname2));
     }
-
-    public List ReadDatList(String filePath) throws IOException {
-        List List = new List();
-        List.Initialize();
-
-        try ( BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                List.Add(line);
-            }
+  
+    
+    public static String getFileType(String filePath){
+        String res = null;
+        try {
+            FileInputStream is = new FileInputStream(filePath);
+            byte[] b = new byte[10];
+            is.read(b, 0, b.length);
+            is.close();
+            
+            String fileCode = bytesToHexString(b);
+            Iterator<String> keyIter = FILE_TYPE_MAP.keySet().iterator();
+            while(keyIter.hasNext()){
+                String key = keyIter.next();
+                if(key.toLowerCase().startsWith(fileCode.toLowerCase()) || fileCode.toLowerCase().startsWith(key.toLowerCase())){
+                    res = FILE_TYPE_MAP.get(key);
+                    break;
+                }
+            }       
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return List;
+        
+        return res;
     }
     
     public String ObjectClassToJSON(List listObject) throws JsonProcessingException {
@@ -101,8 +182,6 @@ public class jFileSupport {
                      
         return productListJson;
     }    
-    
-    
     
     public static String getDirAssets() {
         return assetsDir;
@@ -144,6 +223,82 @@ public class jFileSupport {
         }
     }
     
+    public static void decode(String bytes, String path, String filename) {
+		byte[] content = decode(bytes);
+		FileOutputStream fos = null;
+		try {
+			File dir = new File(path);
+			if (!dir.exists()){
+				dir.mkdir();
+			}
+			
+			fos = new FileOutputStream(path + filename);
+			fos.write(content);
+
+		} catch (Exception e) {
+			BA.LogError(e.toString());
+		} finally {
+			try {
+				fos.close();
+			} catch (IOException e) {
+			}
+		}
+	}
+	
+	public static byte[] decode(String bytes) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(
+				bytes.length() / 2);
+		String hexString = "0123456789ABCDEF";
+		for (int i = 0; i < bytes.length(); i += 2)
+		{
+			baos.write((hexString.indexOf(bytes.charAt(i)) << 4 
+					| hexString.indexOf(bytes.charAt(i + 1))));
+		}
+		return baos.toByteArray();
+	}
+	
+    /**
+     * Converts a string of hexadecimal characters into a byte array.
+     *
+     * @param   hex         the hex string
+     * @return              the hex string decoded into a byte array
+     */
+	public static byte[] fromHex(String hex)
+    {
+        byte[] binary = new byte[hex.length() / 2];
+        for(int i = 0; i < binary.length; i++)
+        {
+            binary[i] = (byte)Integer.parseInt(hex.substring(2*i, 2*i+2), 16);
+        }
+        return binary;
+    }
+ 
+    /**
+     * Converts a byte array into a hexadecimal string.
+     *
+     * @param   array       the byte array to convert
+     * @return              a length*2 character string encoding the byte array
+     */
+    public static String BytestoHex(byte[] array)
+    {
+        BigInteger bi = new BigInteger(1, array);
+        String hex = bi.toString(16);
+        int paddingLength = (array.length * 2) - hex.length();
+        if(paddingLength > 0)
+            return String.format("%0" + paddingLength + "d", 0) + hex;
+        else
+            return hex;
+    }
+
+    public static String InputStream2String(InputStream input) throws IOException{ 
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
+        int i=-1; 
+        while ((i=input.read())!=-1){ 
+        	baos.write(i); 
+        } 
+       return baos.toString(); 
+}
+    
     private static void listFilesAndFolders(File folder, Element parentElement, Document doc) {
         File[] files = folder.listFiles();
         for (File file : files) {
@@ -176,6 +331,144 @@ public class jFileSupport {
             }
         }
     }
+    
+    public static String convertToUTF16Escape(String input) {
+    StringBuilder output = new StringBuilder();
+    for (char c : input.toCharArray()) {
+        if (c > 127) {
+            output.append("\\u").append(String.format("%04X", (int) c));
+        } else {
+            output.append(c);
+        }
+    }
+    return output.toString();
+}
+    
+     public static String bytesToHexString(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (int i = 0; i < src.length; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
+    }
+     
+      public static String getFileEncode(String filePath) {
+        String charsetName = null;
+        try {
+            File file = new File(filePath);
+             
+            CodepageDetectorProxy detector = CodepageDetectorProxy.getInstance();
+            detector.add(new info.monitorenter.cpdetector.io.ParsingDetector(false));
+            detector.add(info.monitorenter.cpdetector.io.JChardetFacade.getInstance());
+            detector.add(info.monitorenter.cpdetector.io.ASCIIDetector.getInstance());
+            detector.add(info.monitorenter.cpdetector.io.UnicodeDetector.getInstance());
+            java.nio.charset.Charset charset = null;
+            charset = detector.detectCodepage(file.toURI().toURL());
+            if (charset != null) {
+                charsetName = charset.name();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        
+        return charsetName;
+    }
+    
+      public static boolean isBinaryFile(String code) {		
+		if(code == null)
+		{
+			return true;
+		}
+		
+		switch(code)
+		{
+		case "GBK":
+		case "GB2312":
+		case "UTF-8":
+		case "UTF-16":
+		case "Unicode":
+		case "US-ASCII":
+		case "windows-1252":
+			return false;
+		}
+		return true;
+	}
+      
+      public static boolean isPdf(String code) {
+		switch(code)
+		{
+		case "Shift_JIS":
+		case "GB18030":
+			return true;
+		}
+		return false;
+	}
+        
+	public int BytesToINT(byte[] b) {
+		int len;
+		len = 256 * ByteToINT(b[0]) + ByteToINT(b[1]);
+		return len;
+	}
+
+	public int ByteToINT(byte b) {
+		if (b < 0)
+			return 256 + b;
+		return b;
+	}
+
+	public byte[] IntToBytes(int len) {
+		byte[] b = new byte[2];
+		b[0] = (byte) (len / 256);
+		b[1] = (byte) (len % 256);
+		return b;
+	}
+
+	public String format_str(int value, int len) {
+		StringBuffer buf = new StringBuffer();
+		String tmp = Integer.toString(value);
+		if (tmp.length() >= len) {
+			return tmp;
+		} else {
+			for (int i = 0; i < len - tmp.length(); i++) {
+				buf.append("0");
+			}
+			buf.append(tmp);
+		}
+		return buf.toString();
+	}
+
+	public String rightPad(String value, int len, char c) {
+		StringBuffer buf = new StringBuffer();
+		if (value.length() >= len) {
+			return value;
+		} else {
+			buf.append(value);
+			for (int i = 0; i < len - value.length(); i++) {
+				buf.append(c);
+			}
+		}
+		return buf.toString();
+	}
+      
+    public static String getPrefix(File filename) {
+
+		String fileName = filename.getName();
+		int index = fileName.lastIndexOf(".") + 1;
+		if( 0 == index){
+			return "";
+		}else{
+			return fileName.substring(index);
+		}
+	}
     
     public String ReadAllFolderToJson(String path, String contextPath) {        
         String jsonString = "";
@@ -1120,4 +1413,6 @@ public class jFileSupport {
         }
 
     }
+    
+        
 }
