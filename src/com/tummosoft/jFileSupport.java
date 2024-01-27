@@ -41,6 +41,7 @@ import java.util.Set;
 
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.keywords.Bit;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.collections.List;
@@ -60,12 +61,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import info.monitorenter.cpdetector.io.ASCIIDetector;
 import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
-import info.monitorenter.cpdetector.io.JChardetFacade;
-import info.monitorenter.cpdetector.io.ParsingDetector;
-import info.monitorenter.cpdetector.io.UnicodeDetector;
-import java.math.BigInteger;
+import java.nio.file.Paths;
 
 import java.util.ArrayList;
 
@@ -157,7 +154,7 @@ public class jFileSupport {
             is.read(b, 0, b.length);
             is.close();
             
-            String fileCode = bytesToHexString(b);
+            String fileCode = jByteSupport.bytesToHexString(b);
             Iterator<String> keyIter = FILE_TYPE_MAP.keySet().iterator();
             while(keyIter.hasNext()){
                 String key = keyIter.next();
@@ -257,38 +254,7 @@ public class jFileSupport {
 		return baos.toByteArray();
 	}
 	
-    /**
-     * Converts a string of hexadecimal characters into a byte array.
-     *
-     * @param   hex         the hex string
-     * @return              the hex string decoded into a byte array
-     */
-	public static byte[] fromHex(String hex)
-    {
-        byte[] binary = new byte[hex.length() / 2];
-        for(int i = 0; i < binary.length; i++)
-        {
-            binary[i] = (byte)Integer.parseInt(hex.substring(2*i, 2*i+2), 16);
-        }
-        return binary;
-    }
- 
-    /**
-     * Converts a byte array into a hexadecimal string.
-     *
-     * @param   array       the byte array to convert
-     * @return              a length*2 character string encoding the byte array
-     */
-    public static String BytestoHex(byte[] array)
-    {
-        BigInteger bi = new BigInteger(1, array);
-        String hex = bi.toString(16);
-        int paddingLength = (array.length * 2) - hex.length();
-        if(paddingLength > 0)
-            return String.format("%0" + paddingLength + "d", 0) + hex;
-        else
-            return hex;
-    }
+  
 
     public static String InputStream2String(InputStream input) throws IOException{ 
         ByteArrayOutputStream baos = new ByteArrayOutputStream(); 
@@ -344,21 +310,7 @@ public class jFileSupport {
     return output.toString();
 }
     
-     public static String bytesToHexString(byte[] src) {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (src == null || src.length <= 0) {
-            return null;
-        }
-        for (int i = 0; i < src.length; i++) {
-            int v = src[i] & 0xFF;
-            String hv = Integer.toHexString(v);
-            if (hv.length() < 2) {
-                stringBuilder.append(0);
-            }
-            stringBuilder.append(hv);
-        }
-        return stringBuilder.toString();
-    }
+     
      
       public static String getFileEncode(String filePath) {
         String charsetName = null;
@@ -413,24 +365,7 @@ public class jFileSupport {
 		return false;
 	}
         
-	public int BytesToINT(byte[] b) {
-		int len;
-		len = 256 * ByteToINT(b[0]) + ByteToINT(b[1]);
-		return len;
-	}
-
-	public int ByteToINT(byte b) {
-		if (b < 0)
-			return 256 + b;
-		return b;
-	}
-
-	public byte[] IntToBytes(int len) {
-		byte[] b = new byte[2];
-		b[0] = (byte) (len / 256);
-		b[1] = (byte) (len % 256);
-		return b;
-	}
+	
 
 	public String format_str(int value, int len) {
 		StringBuffer buf = new StringBuffer();
@@ -1414,5 +1349,842 @@ public class jFileSupport {
 
     }
     
+    /**
+ * @Author Tummosoft
+ * @CreateDate 2024-01-26
+ * @Description Version 1.0.54
+ */
+       
+    public static enum FileSortMode {
+        ModifyTimeDesc, ModifyTimeAsc, CreateTimeDesc, CreateTimeAsc, SizeDesc,
+        SizeAsc,
+        NameDesc, NameAsc, FormatDesc, FormatAsc
+    }
+    
+    public static long getFileCreateTime(final String filename) {
+        try {
+            FileTime t = Files.readAttributes(Paths.get(filename), BasicFileAttributes.class).creationTime();
+            return t.toMillis();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    public static String getFilePath(final String filename) {
+        if (filename == null) {
+            return null;
+        }
+        int pos = filename.lastIndexOf('/');
+        if (pos < 0) {
+            return "";
+        }
+        return filename.substring(0, pos);
+    }
+
+    public static String getFilePrefix(File file) {
+        try {
+            return getFilePrefix(file.getName());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    static private java.util.List<File> convertFormB4A(anywheresoftware.b4a.objects.collections.List files) {
+        java.util.List<File> fileObj = new ArrayList<File>();
+         
+        for (int i=0; i < files.getSize(); i++) {
+            String obj = (String) files.Get(i);
+            if (obj instanceof String) {
+                File newfile = new File(obj);
+               fileObj.add(newfile);
+            }
+        }
         
+        
+        return fileObj;        
+    }
+
+    // filename may include path or not, it is decided by caller
+    public static String getFilePrefix(final String filename) {
+        if (filename == null) {
+            return null;
+        }
+        String fname = filename;
+        int pos = fname.lastIndexOf('.');
+        if (pos >= 0) {
+            fname = fname.substring(0, pos);
+        }
+        return fname;
+    }
+
+    public static String getFileSuffix(File file) {
+        try {
+            return getFileSuffix(file.getAbsolutePath());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String getFileSuffix(final String filename) {
+        if (filename == null) {
+            return null;
+        }
+        String suffix;
+        int pos = filename.lastIndexOf('.');
+        if (pos >= 0 && filename.length() > pos) {
+            suffix = filename.substring(pos + 1);
+        } else {
+            suffix = "";
+        }
+        return suffix;
+    }
+
+    public static String replaceFileSuffix(String filename, String newSuffix) {
+        if (filename == null) {
+            return null;
+        }
+        String fname = filename;
+        int pos = filename.lastIndexOf('.');
+        if (pos >= 0) {
+            fname = fname.substring(0, pos) + "." + newSuffix;
+        } else {
+            fname += "." + newSuffix;
+        }
+        return fname;
+    }
+   
+    // Notice to avoid this situation: filename itself does not include "." while its path include "."
+    public static String appendName(String filename, String inStr) {
+        if (filename == null) {
+            return null;
+        }
+        if (inStr == null) {
+            return filename;
+        }
+        int pos = filename.lastIndexOf('.');
+        if (pos < 0) {
+            return filename + inStr;
+        }
+        return filename.substring(0, pos) + inStr + "." + filename.substring(pos + 1);
+    }
+
+    public static String showFileSize(long size) {
+        double kb = size * 1.0f / 1024;
+        if (kb < 1024) {
+            return jDoubleSupport.scale3(kb) + " KB";
+        } else {
+            double mb = kb / 1024;
+            if (mb < 1024) {
+                return jDoubleSupport.scale3(mb) + " MB";
+            } else {
+                double gb = mb / 1024;
+                return jDoubleSupport.scale3(gb) + " GB";
+            }
+        }
+    }
+
+    public static void sortFiles(anywheresoftware.b4a.objects.collections.List files, FileSortMode sortMode) {
+        
+        java.util.List<File> fileObj = convertFormB4A(files);
+         
+        if (fileObj == null || fileObj.isEmpty() || sortMode == null) {
+            return;
+        }
+        try {
+            switch (sortMode) {
+                case ModifyTimeDesc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long diff = f2.lastModified() - f1.lastModified();
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case ModifyTimeAsc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long diff = f1.lastModified() - f2.lastModified();
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case NameDesc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            return f2.getAbsolutePath().compareTo(f1.getAbsolutePath());
+                        }
+                    });
+                    break;
+
+                case NameAsc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            return f1.getAbsolutePath().compareTo(f2.getAbsolutePath());
+                        }
+                    });
+                    break;
+
+                case CreateTimeDesc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long t1 = getFileCreateTime(f1.getAbsolutePath());
+                            long t2 = getFileCreateTime(f2.getAbsolutePath());
+                            long diff = t2 - t1;
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case CreateTimeAsc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long t1 = getFileCreateTime(f1.getAbsolutePath());
+                            long t2 = getFileCreateTime(f2.getAbsolutePath());
+                            long diff = t1 - t2;
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case SizeDesc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long diff = f2.length() - f1.length();
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case SizeAsc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            long diff = f1.length() - f2.length();
+                            if (diff == 0) {
+                                return 0;
+                            } else if (diff > 0) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+                    break;
+
+                case FormatDesc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            return getFileSuffix(f2).compareTo(getFileSuffix(f1));
+                        }
+                    });
+                    break;
+
+                case FormatAsc:
+                    Collections.sort(fileObj, new Comparator<File>() {
+                        @Override
+                        public int compare(File f1, File f2) {
+                            return getFileSuffix(f1).compareTo(getFileSuffix(f2));
+                        }
+                    });
+                    break;
+
+            }
+
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+        }
+    }
+    
+    public static boolean clearDir(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        file.delete();
+                    } else if (file.isDirectory()) {
+                        deleteDir(file);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    boolean success = deleteDir(file);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return dir.delete();
+    }
+        
+    static String _tempDirectory = "";
+    static public void setTempDirectory(String folder) {
+        _tempDirectory = folder;
+    }
+    
+    public static void deleteNestedDir(File sourceDir) {
+        try {
+            File tmpDir = new File(_tempDirectory);            
+            BA.LogError(sourceDir + "   " + tmpDir);
+            deleteNestedDir(sourceDir, tmpDir);
+            tmpDir.delete();
+            sourceDir.delete();
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+        }
+    }
+
+    public static void deleteNestedDir(File sourceDir, File tmpDir) {
+        try {
+            if (sourceDir.isDirectory()) {
+                File[] files = sourceDir.listFiles();
+                if (files == null || files.length == 0) {
+                    return;
+                }
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        File[] subfiles = file.listFiles();
+                        if (subfiles != null) {
+                            for (File subfile : subfiles) {
+                                if (subfile.isDirectory()) {
+                                    Files.move(Paths.get(subfile.getAbsolutePath()),
+                                            Paths.get(tmpDir.getAbsolutePath() + File.separator + subfile.getName()));
+                                } else {
+                                    subfile.delete();
+                                }
+                            }
+                        }
+                    }
+                    file.delete();
+                }
+                deleteNestedDir(tmpDir, sourceDir);
+            }
+        } catch (Exception e) {
+           BA.LogError(e.toString());
+        }
+    }
+
+    public static boolean deleteDirExcept(File dir, File except) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.equals(except)) {
+                        continue;
+                    }
+                    boolean success = deleteDirExcept(file, except);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return dir.delete();
+    }
+
+    public static long[] countDirectorySize(File dir, boolean countSubdir) {
+        long[] size = new long[2];
+        try {
+            if (dir == null) {
+                return size;
+            }
+            if (dir.isFile()) {
+                size[0] = 1;
+                size[1] = dir.length();
+
+            } else if (dir.isDirectory()) {
+                File[] files = dir.listFiles();
+                size[0] = 0;
+                size[1] = 0;
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isFile()) {
+                            size[0]++;
+                            size[1] += file.length();
+                        } else if (file.isDirectory()) {
+                            if (countSubdir) {
+                                long[] fsize = countDirectorySize(file, countSubdir);
+                                size[0] += fsize[0];
+                                size[1] += fsize[1];
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+        }
+        return size;
+    }
+    
+    public static String getFontFile(String fontName) {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("linux")) {
+            return getFontFile("/usr/share/fonts/", fontName);
+
+        } else if (os.contains("windows")) {
+            return getFontFile("C:/Windows/Fonts/", fontName);
+
+        } else if (os.contains("mac")) {
+            String f = getFontFile("/Library/Fonts/", fontName);
+            if (f != null) {
+                return f;
+            } else {
+                return getFontFile("/System/Library/Fonts/", fontName);
+            }
+        }
+        return null;
+    }
+
+    public static String getFontFile(String path, String fontName) {
+        if (new File(path + fontName + ".ttf ").exists()) {
+            return path + fontName + ".ttf ";
+        } else if (new File(path + fontName.toLowerCase() + ".ttf ").exists()) {
+            return path + fontName + ".ttf ";
+        } else if (new File(path + fontName.toUpperCase() + ".ttf ").exists()) {
+            return path + fontName + ".ttf ";
+        } else {
+            return null;
+        }
+    }
+
+    public static  anywheresoftware.b4a.objects.collections.List splitFileByFilesNumber(String fileSplit, String prefixFileName, long filesNumber) {
+        File file = new File(fileSplit);
+        
+        try {
+            if (file == null || filesNumber <= 0) {
+                return null;
+            }
+            long bytesNumber = file.length() / filesNumber;
+            anywheresoftware.b4a.objects.collections.List splittedFiles = new anywheresoftware.b4a.objects.collections.List();
+            try ( BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                String newFilename;
+                int digit = (filesNumber + "").length();
+                byte[] buf = new byte[(int) bytesNumber];
+                int bufLen, fileIndex = 1, startIndex = 0, endIndex = 0;
+                while ((fileIndex < filesNumber)
+                        && (bufLen = inputStream.read(buf)) != -1) {
+                    endIndex += bufLen;
+                    newFilename = prefixFileName + "-cut-f" + jStringSupport.fillLeftZero(fileIndex, digit)
+                            + "-b" + (startIndex + 1) + "-b" + endIndex;
+                    try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(newFilename))) {
+                        if (bytesNumber > bufLen) {
+                            buf = jByteSupport.subBytes(buf, 0, bufLen);
+                        }
+                        outputStream.write(buf);
+                    }
+                    splittedFiles.Add(newFilename);
+                    fileIndex++;
+                    startIndex = endIndex;
+                }
+                buf = new byte[(int) (file.length() - endIndex)];
+                bufLen = inputStream.read(buf);
+                if (bufLen > 0) {
+                    endIndex += bufLen;
+                    newFilename = prefixFileName + "-cut-f" + jStringSupport.fillLeftZero(fileIndex, digit)
+                            + "-b" + (startIndex + 1) + "-b" + endIndex;
+                    try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(newFilename))) {
+                        outputStream.write(buf);
+                    }
+                    splittedFiles.Add(newFilename);
+                }
+            }
+            return splittedFiles;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return null;
+        }
+    }
+
+    public static anywheresoftware.b4a.objects.collections.List splitFileByBytesNumber(String fileSplit, String prefixFileName, long bytesNumber) {
+         File file = new File(fileSplit);
+        try {
+            if (file == null || bytesNumber <= 0) {
+                return null;
+            }
+             anywheresoftware.b4a.objects.collections.List splittedFiles = new  anywheresoftware.b4a.objects.collections.List();
+            try ( BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                String newFilename;
+                long fnumber = file.length() / bytesNumber;
+                if (file.length() % bytesNumber > 0) {
+                    fnumber++;
+                }
+                int digit = (fnumber + "").length();
+                byte[] buf = new byte[(int) bytesNumber];
+                int bufLen, fileIndex = 1, startIndex = 0, endIndex = 0;
+                while ((bufLen = inputStream.read(buf)) != -1) {
+                    endIndex += bufLen;
+                    newFilename = prefixFileName + "-cut-f" + jStringSupport.fillLeftZero(fileIndex, digit)
+                            + "-b" + (startIndex + 1) + "-b" + endIndex;
+                    try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(newFilename))) {
+                        if (bytesNumber > bufLen) {
+                            buf = jByteSupport.subBytes(buf, 0, bufLen);
+                        }
+                        outputStream.write(buf);
+                    }
+                    splittedFiles.Add(newFilename);
+                    fileIndex++;
+                    startIndex = endIndex;
+                }
+            }
+            return splittedFiles;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return null;
+        }
+    }
+        
+    static String _tempfile = "";
+    static public void setTempFile(String filename) {
+        _tempfile = filename;
+    }
+
+    // 1-based start, that is: from (start - 1) to ( end - 1) actually
+    private static File cutFile(File file, String filename, long startIndex, long endIndex) {
+        try {
+            if (file == null || startIndex < 1 || startIndex > endIndex) {
+                return null;
+            }
+            File tempFile = new File(_tempfile);
+            String newFilename = filename + "-cut-b" + startIndex + "-b" + endIndex;
+            try ( BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                if (startIndex > 1) {
+                    inputStream.skip(startIndex - 1);
+                }
+                int cutLength = (int) (endIndex - startIndex + 1);
+                byte[] buf = new byte[cutLength];
+                int bufLen;
+                bufLen = inputStream.read(buf);
+                if (bufLen == -1) {
+                    return null;
+                }
+                try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tempFile))) {
+                    if (cutLength > bufLen) {
+                        buf = jByteSupport.subBytes(buf, 0, bufLen);
+                        newFilename = filename + "-cut-b" + startIndex + "-b" + bufLen;
+                    }
+                    outputStream.write(buf);
+                }
+            }
+            File actualFile = new File(newFilename);
+            if (actualFile.exists()) {
+                actualFile.delete();
+            }
+            tempFile.renameTo(actualFile);
+            return actualFile;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return null;
+        }
+    }
+
+    public static boolean mergeFiles(String file1, String file2, String targetFile) {
+        File _file1 = new File(file1);
+        File _file2 = new File(file2);
+        File _targetFile  = new File(targetFile);
+        
+        try {
+            java.util.List<File> files = new ArrayList();
+            files.add(_file1);
+            files.add(_file2);
+            return mergeFiles(files, _targetFile);
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return false;
+        }
+    }
+    
+        
+    public static final int IOBufferLength = 8024;
+
+    private static boolean mergeFiles(java.util.List<File> files, File targetFile) {
+        try {
+            if (files == null || files.isEmpty() || targetFile == null) {
+                return false;
+            }
+            try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(targetFile))) {
+                byte[] buf = new byte[IOBufferLength];
+                int bufLen;
+                for (File file : files) {
+                    try ( BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                        while ((bufLen = inputStream.read(buf)) != -1) {
+                            buf = jByteSupport.subBytes(buf, 0, bufLen);
+                            outputStream.write(buf);
+                        }
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return false;
+        }
+    }
+        
+    public static File writeFileWithCharset(String filename, String data, String charset) {
+        File file = new File(filename);
+        try {
+            if (file == null || data == null) {
+                return null;
+            }
+            FileWriter writer;
+            if (charset == null) {
+                writer = new FileWriter(file, Charset.forName("utf-8"));
+            } else {
+                writer = new FileWriter(file, Charset.forName(charset));
+            }
+            writer.write(data);
+            writer.flush();
+            writer.close();
+            return file;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return null;
+        }
+    }
+    
+    public static boolean writeFile(File file, byte[] data) {
+        try {
+            if (file == null || data == null) {
+                return false;
+            }
+            try ( BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+                outputStream.write(data);
+                outputStream.flush();
+            }
+            return true;
+        } catch (Exception e) {
+            BA.LogError(e.toString());
+            return false;
+        }
+    }
+   
+    @Hide
+    static public class FileInformation {
+
+    protected File file;
+    protected long tableIndex, fileSize = -1, createTime, modifyTime, filesNumber = 0;
+    protected String fileName, data, fileSuffix, handled, fileType;    
+    protected boolean selected;
+    protected long sizeWithSubdir = -1, sizeWithoutSubdir = -1,
+            filesWithSubdir = -1, filesWithoutSubdir = -1;
+    protected long duration = -1;  // milliseconds
+
+    public enum FileSelectorType {
+        All, ExtensionEuqalAny, ExtensionNotEqualAny,
+        NameIncludeAny, NameIncludeAll, NameNotIncludeAny, NameNotIncludeAll,
+        NameMatchAnyRegularExpression, NameNotMatchAnyRegularExpression,
+        FileSizeLargerThan, FileSizeSmallerThan, ModifiedTimeEarlierThan,
+        ModifiedTimeLaterThan
+    }
+    
+    public FileInformation(File file) {
+        setFileAttributes(file);
+    }
+
+    public final void setFileAttributes(File file) {
+        this.file = file;
+        
+        if (duration < 0) {
+            duration = 3000;
+        }
+        if (file == null) {
+            return;
+        }
+        this.handled = "";
+        this.fileName = file.getAbsolutePath();
+        this.data = "";
+        this.fileSuffix = "";
+        if (!file.exists()) {
+            this.fileType = "NotExist";
+            this.fileSuffix = this.fileType;
+            return;
+        }
+        if (file.isFile()) {
+            this.filesNumber = 1;
+            this.fileSize = file.length();
+            this.fileType = "File";
+            this.fileSuffix = jFileSupport.getFileSuffix(fileName);
+            if (this.fileSuffix == null || this.fileSuffix.isEmpty()) {
+                this.fileSuffix = "Unknown";
+            }
+        } else if (file.isDirectory()) {
+//            long[] size = FileTools.countDirectorySize(file);
+//            this.filesNumber = size[0];
+//            this.fileSize = size[1];
+            this.filesNumber = -1;
+            this.fileSize = -1;
+            sizeWithSubdir = sizeWithoutSubdir = -1;
+            filesWithSubdir = filesWithoutSubdir = -1;
+            this.fileType = "Directory";
+            this.fileSuffix = this.fileType;
+        } else {
+            this.fileSuffix = "Others";
+        }
+        this.createTime = jFileSupport.getFileCreateTime(fileName);
+        this.modifyTime = file.lastModified();
+    }
+
+    public void setDirectorySize(boolean countSubdir) {
+        if (file == null || !file.isDirectory()) {
+            return;
+        }
+        if (countSubdir) {
+            fileSize = sizeWithSubdir;
+            filesNumber = filesWithSubdir;
+        } else {
+            fileSize = sizeWithoutSubdir;
+            filesNumber = filesWithoutSubdir;
+        }
+    }
+    
+    /*
+        get/set
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public String getFileSuffix() {
+        return fileSuffix;
+    }
+
+    public void setFileSuffix(String fileSuffix) {
+        this.fileSuffix = fileSuffix;
+    }
+
+    public String getHandled() {
+        return handled;
+    }
+
+    public void setHandled(String handled) {
+        this.handled = handled;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(long createTime) {
+        this.createTime = createTime;
+    }
+
+    public long getModifyTime() {
+        return modifyTime;
+    }
+
+    public void setModifyTime(long modifyTime) {
+        this.modifyTime = modifyTime;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        setFileAttributes(file);
+    }
+
+    public long getFilesNumber() {
+        return filesNumber;
+    }
+
+    public void setFilesNumber(long filesNumber) {
+        this.filesNumber = filesNumber;
+    }
+
+    public long getTableIndex() {
+        return tableIndex;
+    }
+
+    public void setTableIndex(long tableIndex) {
+        this.tableIndex = tableIndex;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
+
+}
 }
