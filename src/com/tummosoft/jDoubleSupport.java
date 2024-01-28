@@ -14,34 +14,34 @@ import java.util.Random;
 @BA.ShortName("jDoubleSupport")
 public class jDoubleSupport {
     public static double scale3(double invalue) {
-        return jDoubleSupport.scale(invalue, 3);
+        return jDoubleSupport.BigScale(invalue, 3);
     }
 
     public static double scale2(double invalue) {
-        return jDoubleSupport.scale(invalue, 2);
+        return jDoubleSupport.BigScale(invalue, 2);
     }
 
     public static double scale6(double invalue) {
-        return jDoubleSupport.scale(invalue, 6);
+        return jDoubleSupport.BigScale(invalue, 6);
     }
 
-    public static double scale(double v, int scale) {
+    private static double BigScale(double v, int scale) {
         BigDecimal b = new BigDecimal(Double.toString(v));
-        return scale(b, scale);
+        return dScale(b, scale);
     }
 
-    public static double scale(BigDecimal b, int scale) {
+   private static double dScale(BigDecimal b, int scale) {
         return b.setScale(scale, RoundingMode.HALF_UP).doubleValue();
     }
 
-    public static double[] scale(double[] data, int scale) {
+   private static double[] scale(double[] data, int scale) {
         try {
             if (data == null) {
                 return null;
             }
             double[] result = new double[data.length];
             for (int i = 0; i < data.length; ++i) {
-                result[i] = scale(data[i], scale);
+                result[i] = BigScale(data[i], scale);
             }
             return result;
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class jDoubleSupport {
         return sorted;
     }
 
-    public static double[] array(double x, double y, double z) {
+    private static double[] array(double x, double y, double z) {
         double[] xyz = new double[3];
         xyz[0] = x;
         xyz[1] = y;
@@ -96,16 +96,16 @@ public class jDoubleSupport {
    private static NumberFormat numberFormat;
   
     
-    public static String percentage(double data, double total) {
-        return percentage(data, total, 2);
+    public static String getPercentage(double data, double total) {
+        return percentage2(data, total, 2);
     }
 
-    public static String percentage(double data, double total, int scale) {
+    private static String percentage2(double data, double total, int scale) {
         try {
             if (total == 0) {
                 return "Invalid";
             }
-            return scale(data * 100 / total, scale) + "";
+            return BigScale(data * 100 / total, scale) + "";
         } catch (Exception e) {
             return data + "";
         }
@@ -143,7 +143,7 @@ public class jDoubleSupport {
         return numberFormat;
     }
 
-    public static String scaleString(double v, int scale) {
+    private static String scaleString(double v, int scale) {
         try {
             if (scale < 0) {
                 return v + "";

@@ -1468,7 +1468,7 @@ public class jFileSupport {
         return filename.substring(0, pos) + inStr + "." + filename.substring(pos + 1);
     }
 
-    public static String showFileSize(long size) {
+    private static String showFileSize(long size) {
         double kb = size * 1.0f / 1024;
         if (kb < 1024) {
             return jDoubleSupport.scale3(kb) + " KB";
@@ -1482,7 +1482,9 @@ public class jFileSupport {
             }
         }
     }
-
+    
+    public FileSortMode sortType;
+    
     public static void sortFiles(anywheresoftware.b4a.objects.collections.List files, FileSortMode sortMode) {
         
         java.util.List<File> fileObj = convertFormB4A(files);
@@ -1635,7 +1637,9 @@ public class jFileSupport {
         }
     }
     
-    public static boolean clearDir(File dir) {
+    public static boolean clearDir(String folder) {
+        File dir = new File(folder);
+        
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
             if (files != null) {
@@ -1651,7 +1655,8 @@ public class jFileSupport {
         return true;
     }
 
-    public static boolean deleteDir(File dir) {
+    private static boolean deleteDir(File dir) {
+        
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
             if (files != null) {
@@ -1671,102 +1676,7 @@ public class jFileSupport {
         _tempDirectory = folder;
     }
     
-    public static void deleteNestedDir(File sourceDir) {
-        try {
-            File tmpDir = new File(_tempDirectory);            
-            BA.LogError(sourceDir + "   " + tmpDir);
-            deleteNestedDir(sourceDir, tmpDir);
-            tmpDir.delete();
-            sourceDir.delete();
-        } catch (Exception e) {
-            BA.LogError(e.toString());
-        }
-    }
-
-    public static void deleteNestedDir(File sourceDir, File tmpDir) {
-        try {
-            if (sourceDir.isDirectory()) {
-                File[] files = sourceDir.listFiles();
-                if (files == null || files.length == 0) {
-                    return;
-                }
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        File[] subfiles = file.listFiles();
-                        if (subfiles != null) {
-                            for (File subfile : subfiles) {
-                                if (subfile.isDirectory()) {
-                                    Files.move(Paths.get(subfile.getAbsolutePath()),
-                                            Paths.get(tmpDir.getAbsolutePath() + File.separator + subfile.getName()));
-                                } else {
-                                    subfile.delete();
-                                }
-                            }
-                        }
-                    }
-                    file.delete();
-                }
-                deleteNestedDir(tmpDir, sourceDir);
-            }
-        } catch (Exception e) {
-           BA.LogError(e.toString());
-        }
-    }
-
-    public static boolean deleteDirExcept(File dir, File except) {
-        if (dir.isDirectory()) {
-            File[] files = dir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.equals(except)) {
-                        continue;
-                    }
-                    boolean success = deleteDirExcept(file, except);
-                    if (!success) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return dir.delete();
-    }
-
-    public static long[] countDirectorySize(File dir, boolean countSubdir) {
-        long[] size = new long[2];
-        try {
-            if (dir == null) {
-                return size;
-            }
-            if (dir.isFile()) {
-                size[0] = 1;
-                size[1] = dir.length();
-
-            } else if (dir.isDirectory()) {
-                File[] files = dir.listFiles();
-                size[0] = 0;
-                size[1] = 0;
-                if (files != null) {
-                    for (File file : files) {
-                        if (file.isFile()) {
-                            size[0]++;
-                            size[1] += file.length();
-                        } else if (file.isDirectory()) {
-                            if (countSubdir) {
-                                long[] fsize = countDirectorySize(file, countSubdir);
-                                size[0] += fsize[0];
-                                size[1] += fsize[1];
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            BA.LogError(e.toString());
-        }
-        return size;
-    }
-    
-    public static String getFontFile(String fontName) {
+    private static String getFontFile(String fontName) {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("linux")) {
             return getFontFile("/usr/share/fonts/", fontName);
@@ -1890,6 +1800,7 @@ public class jFileSupport {
 
     // 1-based start, that is: from (start - 1) to ( end - 1) actually
     private static File cutFile(File file, String filename, long startIndex, long endIndex) {
+        
         try {
             if (file == null || startIndex < 1 || startIndex > endIndex) {
                 return null;
@@ -1936,17 +1847,33 @@ public class jFileSupport {
             java.util.List<File> files = new ArrayList();
             files.add(_file1);
             files.add(_file2);
-            return mergeFiles(files, _targetFile);
+            return mergeFiles3(files, _targetFile);
         } catch (Exception e) {
             BA.LogError(e.toString());
             return false;
         }
     }
     
+    public static boolean mergeFiles2(anywheresoftware.b4a.objects.collections.List listFile, String target) {
+         try {
+        java.util.List<File> files = null;
+        for (int i=0; i < listFile.getSize(); i++) {
+            String f1 = (String)listFile.Get(i);
+            files.add(new File(f1));
+        }
         
-    public static final int IOBufferLength = 8024;
+            File targetFile = new File(target);
+            mergeFiles3(files, targetFile);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+        
+    private static final int IOBufferLength = 8024;
 
-    private static boolean mergeFiles(java.util.List<File> files, File targetFile) {
+    private static boolean mergeFiles3(java.util.List<File> files, File targetFile) {
         try {
             if (files == null || files.isEmpty() || targetFile == null) {
                 return false;
@@ -1970,7 +1897,8 @@ public class jFileSupport {
         }
     }
     
-    public static boolean writeFile(File file, byte[] data) {
+    public static boolean writeFile(String filename, byte[] data) {
+        File file = new File(filename);
         try {
             if (file == null || data == null) {
                 return false;

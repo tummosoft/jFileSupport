@@ -93,14 +93,14 @@ public class jByteSupport {
     }
 
     public static String stringToHexFormat(String text) {
-        return bytesToHexFormatWithCF(text.getBytes());
+        return bytesToHexFormatWithCF2(text.getBytes());
     }
 
-    public static String bytesToHexFormatWithCF(byte[] bytes) {
-        return bytesToHexFormatWithCF(bytes, bytesToHex("\n".getBytes()));
+    private static String bytesToHexFormatWithCF2(byte[] bytes) {
+        return bytesToHexFormatWithCF3(bytes, bytesToHex("\n".getBytes()));
     }
 
-    public static String bytesToHexFormatWithCF(byte[] bytes, String newLineHex) {
+   private static String bytesToHexFormatWithCF3(byte[] bytes, String newLineHex) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < bytes.length; ++i) {
             String hex = Integer.toHexString(bytes[i] & 0xFF);
@@ -135,7 +135,7 @@ public class jByteSupport {
         return s;
     }
 
-    public static String bytesToHexFormat(byte[] bytes, int newLineWidth) {
+    public static String bytesToHexFormat2(byte[] bytes, int newLineWidth) {
         StringBuilder sb = new StringBuilder();
         int count = 1;
         for (int i = 0; i < bytes.length; ++i) {
@@ -321,19 +321,7 @@ public class jByteSupport {
             return null;
         }
     }
-
-    public static int countNumber(byte[] bytes, byte[] subBytes) {
-        return jStringSupport.countNumber(bytesToHex(bytes), bytesToHex(subBytes));
-    }
-
-    public static int countNumber(byte[] bytes, byte c) {
-        return jStringSupport.countNumber(bytesToHex(bytes), byteToHex(c));
-    }
-
-    public static int countNumber(byte[] bytes, String hex) {
-        return jStringSupport.countNumber(bytesToHex(bytes), hex);
-    }
-
+    
     public static int lineIndex(String lineText, Charset charset, int offset) {
         int hIndex = 0;
         byte[] cBytes;
@@ -372,7 +360,7 @@ public class jByteSupport {
      * @param   hex         the hex string
      * @return              the hex string decoded into a byte array
      */
-	public static byte[] fromHex(String hex)
+	public static byte[] GetByteFromHex(String hex)
     {
         byte[] binary = new byte[hex.length() / 2];
         for(int i = 0; i < binary.length; i++)
@@ -489,10 +477,10 @@ public class jByteSupport {
     }
 
     public static byte[] deflate(Object object) {
-        return deflate(toBytes(object));
+        return deflate2(ObjectToBytes(object));
     }
 
-    public static byte[] deflate(byte[] bytes) {
+    private static byte[] deflate2(byte[] bytes) {
         try {
             ByteArrayOutputStream a = new ByteArrayOutputStream();
             try ( DeflaterOutputStream out = new DeflaterOutputStream(a)) {
@@ -506,10 +494,10 @@ public class jByteSupport {
     }
 
     public static byte[] inflate(Object object) {
-        return inflate(toBytes(object));
+        return inflate2(ObjectToBytes(object));
     }
 
-    public static byte[] inflate(byte[] bytes) {
+    private static byte[] inflate2(byte[] bytes) {
         try {
             ByteArrayOutputStream a = new ByteArrayOutputStream();
             try ( InflaterOutputStream out = new InflaterOutputStream(a)) {
@@ -522,7 +510,7 @@ public class jByteSupport {
         }
     }
 
-    public static byte[] toBytes(Object object) {
+    public static byte[] ObjectToBytes(Object object) {
         try {
             ByteArrayOutputStream a = new ByteArrayOutputStream();
             try ( ObjectOutputStream out = new ObjectOutputStream(a)) {
@@ -535,7 +523,7 @@ public class jByteSupport {
         }
     }
 
-    public static Object toObject(byte[] bytes) {
+    public static Object BytesToObject(byte[] bytes) {
         try {
             ByteArrayInputStream a = new ByteArrayInputStream(bytes);
             try ( ObjectInputStream in = new ObjectInputStream(a)) {

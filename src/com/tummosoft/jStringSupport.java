@@ -74,7 +74,7 @@ public class jStringSupport {
         return v;
     }
 
-    public static String fillLeftBlank(double value, int digit) {
+    public static String fillLeftBlank2(double value, int digit) {
         String v = new BigDecimal(value + "").toString() + "";
         for (int i = v.length(); i < digit; ++i) {
             v = " " + v;
@@ -82,7 +82,7 @@ public class jStringSupport {
         return v;
     }
 
-    public static String fillRightBlank(String value, int digit) {
+    public static String fillRightBlank2(String value, int digit) {
         String v = value;
         for (int i = v.length(); i < digit; ++i) {
             v += " ";
@@ -95,7 +95,7 @@ public class jStringSupport {
         return df.format(data);
     }
 
-    public static String format(double data) {
+    public static String format2(double data) {
         return format(Math.round(data));
     }
 
@@ -103,56 +103,29 @@ public class jStringSupport {
         return String.format("%-" + nameLength + "s:" + value, name);
     }
 
-    public static String replaceAll(String string, String oldString,
+    public static String replaceAll(String value, String oldString,
             String newString) {
-        if (string == null || string.isEmpty()
+        if (value == null || value.isEmpty()
                 || oldString == null || oldString.isEmpty()
                 || newString == null) {
-            return string;
+            return value;
         }
         try {
-            String replaced = string.replace(
+            String replaced = value.replace(
                     oldString.subSequence(0, oldString.length()),
                     newString.subSequence(0, newString.length())
             );
             return replaced;
         } catch (Exception e) {
             //            logger.debug(e.toString());
-            return string;
+            return value;
         }
     }
-
-    public static Map<String, Object> lastAndCount(String string,
-            String subString) {
-        Map<String, Object> results = new HashMap<>();
-        results.put("count", 0);
-        results.put("lastIndex", -1);
-        results.put("lastMatch", "");
-        if (string == null || string.isEmpty() || subString == null || subString.isEmpty() || string.length() < subString.length()) {
-            return results;
-        }
-        int fromIndex = 0;
-        int count = 0;
-        int lastIndex = -1;
-        while (true) {
-            int index = string.indexOf(subString, fromIndex);
-            if (index < 0) {
-                break;
-            }
-            lastIndex = index;
-            fromIndex = index + 1;
-            count++;
-        }
-        results.put("count", count);
-        results.put("lastIndex", lastIndex);
-        results.put("lastMatch", subString);
-        return results;
-    }
-
-    public static boolean match(String string, String regex) {
+    
+    public static boolean match(String value, String regex) {
         try {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(string);
+            Matcher matcher = pattern.matcher(value);
             return matcher.matches();
         } catch (Exception e) {
             //            logger.debug(e.toString());
@@ -160,10 +133,10 @@ public class jStringSupport {
         }
     }
 
-    public static int lastRegex(String string, String regex) {
+    public static int lastRegex(String value, String regex) {
         try {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(string);
+            Matcher matcher = pattern.matcher(value);
             int index = -1;
             while (matcher.find()) {
                 index = matcher.start();
@@ -175,14 +148,14 @@ public class jStringSupport {
         }
     }
 
-    public static int firstRegex(String string, String regex) {
-        return firstRegex(string, regex, 0);
+    public static int firstRegex(String value, String regex) {
+        return firstRegex2(value, regex, 0);
     }
 
-    public static int firstRegex(String string, String regex, int from) {
+    private static int firstRegex2(String value, String regex, int from) {
         try {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(string);
+            Matcher matcher = pattern.matcher(value);
             if (matcher.find(from)) {
                 return matcher.start();
             } else {
@@ -193,43 +166,14 @@ public class jStringSupport {
             return -1;
         }
     }
-
-    public static Map<String, Object> lastAndCountRegex(String string,
-            String regex) {
-        Map<String, Object> results = new HashMap<>();
-        results.put("count", 0);
-        results.put("lastIndex", -1);
-        results.put("lastMatch", "");
-        try {
-            if (string == null || string.isEmpty() || regex == null || regex.isEmpty()) {
-                return results;
-            }
-            int count = 0;
-            int lastIndex = -1;
-            String lastMatch = "";
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(string);
-            while (matcher.find()) {
-                count++;
-                lastMatch = matcher.group();
-                lastIndex = matcher.start();
-            }
-            results.put("count", count);
-            results.put("lastIndex", lastIndex);
-            results.put("lastMatch", lastMatch);
-        } catch (Exception e) {
-            //            logger.debug(e.toString());
-        }
-        return results;
-    }
-
-    public static int countNumberRegex(String string, String regex) {
-        if (string == null || string.isEmpty() || regex == null || regex.isEmpty()) {
+    
+    public static int countNumberRegex(String value, String regex) {
+        if (value == null || value.isEmpty() || regex == null || regex.isEmpty()) {
             return 0;
         }
         try {
             Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(string);
+            Matcher matcher = pattern.matcher(value);
             int count = 0;
             while (matcher.find()) {
                 count++;
@@ -241,14 +185,14 @@ public class jStringSupport {
         }
     }
 
-    public static int countNumber(String string, String subString) {
-        if (string == null || string.isEmpty() || subString == null || subString.isEmpty() || string.length() < subString.length()) {
+    private static int countNumber(String value, String subString) {
+        if (value == null || value.isEmpty() || subString == null || subString.isEmpty() || value.length() < subString.length()) {
             return 0;
         }
         int fromIndex = 0;
         int count = 0;
         while (true) {
-            int index = string.indexOf(subString, fromIndex);
+            int index = value.indexOf(subString, fromIndex);
             if (index < 0) {
                 break;
             }
@@ -276,13 +220,13 @@ public class jStringSupport {
         return sb.toString();
     }
 
-    public static String encodeUnicode(String string) {
-        if (string == null || "".equals(string)) {
+    public static String encodeUnicode(String value) {
+        if (value == null || "".equals(value)) {
             return null;
         }
         StringBuilder unicode = new StringBuilder();
-        for (int i = 0; i < string.length(); i++) {
-            char c = string.charAt(i);
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
             unicode.append("\\u").append(Integer.toHexString(c));
         }
         return unicode.toString();
