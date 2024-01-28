@@ -10,8 +10,9 @@ import java.nio.charset.Charset;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
 
+@BA.ShortName("jByteSupport")
 public class jByteSupport {
-     public static int Invalid_Byte = -999;
+     private static int Invalid_Byte = -999;
      
       public enum Line_Break {
         LF, // Liunx/Unix
@@ -387,7 +388,7 @@ public class jByteSupport {
      * @param   array       the byte array to convert
      * @return              a length*2 character string encoding the byte array
      */
-    public static String BytestoHex(byte[] array)
+    public static String BytestoHex2(byte[] array)
     {
         BigInteger bi = new BigInteger(1, array);
         String hex = bi.toString(16);
@@ -414,7 +415,7 @@ public class jByteSupport {
         return stringBuilder.toString();
     }
     
-    public int BytesToINT(byte[] b) {
+    public int BytesToINT2(byte[] b) {
 		int len;
 		len = 256 * ByteToINT(b[0]) + ByteToINT(b[1]);
 		return len;
@@ -426,7 +427,7 @@ public class jByteSupport {
 		return b;
 	}
 
-	public byte[] IntToBytes(int len) {
+	public byte[] IntToBytes2(int len) {
 		byte[] b = new byte[2];
 		b[0] = (byte) (len / 256);
 		b[1] = (byte) (len % 256);

@@ -67,7 +67,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 @ShortName("jFileSupport")
-@BA.Version(1.51f)
+@BA.Version(1.53f)
 public class jFileSupport {    
     static {
         System.setProperty("file.encoding", "UTF-8");
@@ -1967,28 +1967,6 @@ public class jFileSupport {
         } catch (Exception e) {
             BA.LogError(e.toString());
             return false;
-        }
-    }
-        
-    public static File writeFileWithCharset(String filename, String data, String charset) {
-        File file = new File(filename);
-        try {
-            if (file == null || data == null) {
-                return null;
-            }
-            FileWriter writer;
-            if (charset == null) {
-                writer = new FileWriter(file, Charset.forName("utf-8"));
-            } else {
-                writer = new FileWriter(file, Charset.forName(charset));
-            }
-            writer.write(data);
-            writer.flush();
-            writer.close();
-            return file;
-        } catch (Exception e) {
-            BA.LogError(e.toString());
-            return null;
         }
     }
     

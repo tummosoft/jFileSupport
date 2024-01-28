@@ -11,6 +11,7 @@ import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Random;
 
+@BA.ShortName("jDoubleSupport")
 public class jDoubleSupport {
     public static double scale3(double invalue) {
         return jDoubleSupport.scale(invalue, 3);
@@ -92,7 +93,7 @@ public class jDoubleSupport {
         return xyz;
     }
     
-    public static NumberFormat numberFormat;
+   private static NumberFormat numberFormat;
   
     
     public static String percentage(double data, double total) {
@@ -134,7 +135,7 @@ public class jDoubleSupport {
         }
     }
     
-    public static NumberFormat numberFormat() {
+    private static NumberFormat numberFormat2() {
         numberFormat = NumberFormat.getInstance();
         numberFormat.setMinimumFractionDigits(0);
         numberFormat.setGroupingUsed(false);
@@ -148,7 +149,7 @@ public class jDoubleSupport {
                 return v + "";
             }
             if (numberFormat == null) {
-                numberFormat();
+                numberFormat2();
             }
             numberFormat.setMaximumFractionDigits(scale);
             return numberFormat.format(v);
@@ -158,10 +159,10 @@ public class jDoubleSupport {
         }
     }
 
-    public static double random(Random r, int max, boolean nonNegative) {
-        if (r == null) {
-            r = new Random();
-        }
+    public static double random(int max, boolean nonNegative) {
+        
+        Random r = new Random();
+        
         int sign = nonNegative ? 1 : r.nextInt(2);
         sign = sign == 1 ? 1 : -1;
         double d = r.nextDouble();

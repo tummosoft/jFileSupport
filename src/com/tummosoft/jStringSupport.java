@@ -1,5 +1,6 @@
 package com.tummosoft;
 
+import anywheresoftware.b4a.BA;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@BA.ShortName("jStringSupport")
 public class jStringSupport {
     public static String[] separatedBySpace(String string) {
         String[] ss = new String[2];
@@ -255,8 +257,7 @@ public class jStringSupport {
         }
         return count;
     }
-
-    // https://blog.csdn.net/zx1749623383/article/details/79540748
+    
     public static String decodeUnicode(String unicode) {
         if (unicode == null || "".equals(unicode)) {
             return null;

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="libs/commons-codec-1.16.0.jar"/>
+	<classpathentry kind="lib" path="libs/cpdetector-1.0.10.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-core-2.15.2.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-databind-2.15.2.jar"/>
+	<classpathentry kind="lib" path="libs/jCore.jar"/>
+	<classpathentry kind="lib" path="libs/json-20230618.jar"/>
+	<classpathentry kind="lib" path="libs/org.mozilla.intl.chardet-1.1.jar"/>
+	<classpathentry kind="lib" path="libs/org.mozilla.rhino.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
+</classpath>

@@ -2,7 +2,6 @@ package com.tummosoft;
 
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,21 +13,14 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.ShortName;
-import anywheresoftware.b4a.BA.Version;
 
 @ShortName("jSecuritySupport")
-@Version(1.01f)
 public class jSecuritySupport {
-    
-    public static void main(String[] args) {
-        // TODO code application logic here
-    }
-    
-     public static float jreVersion() {
+    public static float jreVersion() {
         return Float.parseFloat(System.getProperty("java.version").substring(0, 3));
     }
 
-    public static String os() {
+    private static String os() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
             return "win";
@@ -55,16 +47,6 @@ public class jSecuritySupport {
     public static boolean isWindows() {
         return os().contains("win");
     }
-
-    public static String getKeystorePath(String saveTo) {
-        String jvm_cacerts = anywheresoftware.b4a.objects.streams.File.Combine(System.getProperty("java.home"), "/lib/security/cacerts");        
-        
-        return jvm_cacerts;        
-    }
-
-    public static String keystorePassword() {
-        return "changeit";
-    }
     
     public static void listAllThreads() {
         ThreadGroup currentThreadGroup = Thread.currentThread().getThreadGroup();
@@ -77,7 +59,7 @@ public class jSecuritySupport {
         showThreadGroup(root, "");
     }
 
-    public static void showThreadGroup(ThreadGroup group, String index) {//显示线程组信息
+    public static void showThreadGroup(ThreadGroup group, String index) {
         if (group == null) {
             return;
         }
@@ -87,16 +69,16 @@ public class jSecuritySupport {
         ThreadGroup[] groups = new ThreadGroup[countGroup];
         group.enumerate(threads, false);
         group.enumerate(groups, false);
-        
+
         for (int i = 0; i < count; ++i) {
             showThread(threads[i], index + "  ");
         }
         for (int i = 0; i < countGroup; ++i) {
             showThreadGroup(groups[i], index + "  ");
         }
-        
+
     }
-    
+
     public static void showThread(Thread thread, String index) {
         if (thread == null) {
             return;
@@ -111,7 +93,7 @@ public class jSecuritySupport {
             if (thread.equals(Thread.currentThread())) {
                 continue;
             }
-            
+
         }
     }
 
@@ -136,27 +118,6 @@ public class jSecuritySupport {
         return MouseInfo.getPointerInfo().getLocation();
     }
     
-    public static String IccProfilePath() {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("windows")) {
-            return "C:\\Windows\\System32\\spool\\drivers\\color";
-
-        } else if (os.contains("linux")) {
-            // /usr/share/color/icc
-            // /usr/local/share/color/icc
-            // /home/USER_NAME/.color/icc
-            return "/usr/share/color/icc";
-
-        } else if (os.contains("mac")) {
-            // /Library/ColorSync/Profiles
-            // /Users/USER_NAME/Library/ColorSync/Profile
-            return "/Library/ColorSync/Profiles";
-
-        } else {
-            return null;
-        }
-    }
-
     public static void SignatureAlgorithms() {
         try {
             for (Provider provider : Security.getProviders()) {
@@ -209,7 +170,7 @@ public class jSecuritySupport {
     public static byte[] messageDigest(File file, String algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);
-            try ( BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
                 byte[] buf = new byte[8024];
                 int len;
                 while ((len = in.read(buf)) != -1) {
@@ -225,7 +186,7 @@ public class jSecuritySupport {
 
     }
 
-    public static SSLServerSocket defaultSSLServerSocket() {
+    public static SSLServerSocket getDefaultSSLServerSocket() {
         try {
             SSLServerSocketFactory ssl = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
             return (SSLServerSocket) ssl.createServerSocket();
@@ -254,11 +215,6 @@ public class jSecuritySupport {
 
         }
 
-    }
-
-    public static boolean isOtherPlatforms() {
-        String p = System.getProperty("os.name").toLowerCase();
-        return !p.contains("windows") && !p.contains("linux");
     }
     
 }
